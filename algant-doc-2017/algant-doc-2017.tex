@@ -1,0 +1,515 @@
+\documentclass{beamer}
+
+\usepackage[linesnumbered,lined, vlined]{algorithm2e}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{pgfplots}
+\usepackage{tikz}
+
+\usetheme{Kalgan}
+
+\newcommand{\Field}{\mathbb{F}}
+\newcommand{\FField}[1]{\Field_{#1}}
+\newcommand{\Ideal}[1]{\langle #1 \rangle}
+\newcommand{\LT}[1]{\mathsf{LT}(#1)}
+\newcommand{\LM}[1]{\mathsf{LM}(#1)}
+\newcommand{\LC}[1]{\mathsf{LC}(#1)}
+\newcommand{\Tail}[1]{\mathsf{Tail}(#1)}
+\newcommand{\mpolyring}[3]{#1[#2_{1}, \ldots, #2_{#3}]}
+\newcommand{\LCM}[2]{\mathsf{LCM}(#1, #2)}
+\newcommand{\LCMLM}[2]{\LCM{\LM{#1}}{\LM{#2}}}
+\newcommand{\Spoly}[2]{\mathsf{Spoly}(#1, #2)}
+\newcommand{\Grobner}{Gr\"{o}bner }
+\newcommand{\ZZ}{\mathbb{Z}}
+
+\newtheorem{question}{Question}
+\newtheorem{link}{}
+
+\title{M4GB: An Efficient \Grobner Basis Algorithm} \author{Rusydi
+  H. Makarim\inst{1, 2} \and Marc Stevens\inst{2}}
+\institute{\inst{1}Mathematics Institute, University Leiden \and
+  \inst{2}Cryptology Group, Centrum Wiskunde en Informatica (CWI)}
+
+\date{ALGANT-DOC Meeting, 15th May 2017}
+
+\AtBeginSection[]
+{
+  \begin{frame}{Table of Contents}
+    \tableofcontents[currentsection]
+  \end{frame}  
+}
+
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \tableofcontents
+\end{frame}
+
+\begin{section}{Introduction}
+  
+  \begin{frame}{Problem}
+    $\mpolyring{\Field}{x}{n}$ - a polynomial ring over a field
+    $\Field$ together with an admissible monomial ordering $<$.
+
+    \pause
+    
+    \begin{problem}[MQ-problem]
+      Let $n, m \in \ZZ_{>0}$. Given
+      $f_1, \ldots, f_m \in \mpolyring{\Field}{x}{n}$ with $f_i$ be
+      quadratic polynomials, find a $(a_1, \ldots, a_n) \in \Field^n$
+      such that $f_i(a_1, \ldots, a_n) = 0$ for all
+      $i = 1, \ldots, m$.
+    \end{problem}
+  \end{frame}
+
+  \begin{frame}{Notations}
+    \begin{example}<1->
+      $f = \alert<5> {\alert<4>{-15} \alert<3>{x^2}} + \alert<6>{8xy -
+        13z^2 - 4x + 11z} \in \FField{31}[x, y, z]$
+
+      \begin{itemize}
+      \item<2-> $\LM{f} = \alert<3>{x^2}$ (the leading monomial of
+        $f$)
+      \item<3-> $\LC{f} = \alert<4>{-15}$ (the leading coefficient of
+        $f$)
+      \item<4-> $\LT{f} = \alert<5>{-15x^2}$ (the leading term of $f$)
+      \item<5-> $\Tail{f} = \alert<6>{8xy - 13z^2 - 4x + 11z}$ (the
+        tail of $f$)
+      \end{itemize}
+    \end{example}
+  \end{frame}
+  
+  \begin{frame}{Polynomial Reduction}
+
+    \begin{theorem}
+      Let $G = (g_1, \ldots, g_t)$ be a nonempty ordered finite subset
+      of $\mpolyring{\Field}{x}{n}$. Then every polynomial
+      $f \in \mpolyring{\Field}{x}{n}$ can be written as
+      $$
+      f = q_1 g_1 + \ldots + q_t g_t + r,
+      $$
+      where $q_1, \ldots, q_t, r \in \mpolyring{\Field}{x}{n}$ and
+      either $r = 0$ or none of terms of $r$ is divisible by any of
+      $\LT{g_1}, \ldots, \LT{g_t}$.
+    \end{theorem}
+
+    \pause
+    
+    \center{$r \leftarrow \textsc{FullReduce}(f, G)$}
+  \end{frame}
+
+  \begin{frame}{\Grobner basis}
+    \begin{definition}
+      Let $I \neq \{ 0 \}$ be an ideal of
+      $\mpolyring{\Field}{x}{n}$. A finite subset $G \subseteq I$ that
+      generates $I$ is a \Grobner basis of $I$ if for all $f \in I$,
+      there exists $g \in G$ such that $\LT{g} \mid \LT{f}$.
+    \end{definition}
+  \end{frame}
+  
+  \begin{frame}{S-polynomial}
+    \begin{definition}
+      Let $f, g \in \mpolyring{\Field}{x}{n}$ be nonzero polynomials
+      and let $x^{\gamma} = \LCMLM{f}{g}$. The S-polynomial of $f$ and
+      $g$ is defined as
+      $$
+      \Spoly{f}{g} = \dfrac{x^{\gamma}}{\LT{f}} \cdot f -
+      \dfrac{x^{\gamma}}{\LT{g}} \cdot g.
+      $$
+    \end{definition}
+  \end{frame}
+
+  \begin{frame}{Buchberger's Algorithm}
+    \begin{algorithm}[H]
+      \KwIn{A finite ordered subset
+        $F \subseteq \mpolyring{\Field}{x}{n}$} \KwResult{A \Grobner
+        basis $G$ such that $\Ideal{G} = \Ideal{F}$}
+      
+      $P \leftarrow \{ \{p, q \} : \forall p, q \in F\ \mathbf{and}\ p \neq q \}$\\
+      $G \leftarrow F$\\
+
+      \While{$P \neq \{ \}$} {
+        $\{ p, q \} \leftarrow \textsc{Select}(P)$\\
+        $P \leftarrow P \setminus \{ \{ p, q \} \}$\\
+        $r \leftarrow \textsc{FullReduce}(\Spoly{p}{q}, G)$\\
+        \If{$r \neq 0$} {
+          $P \leftarrow P \cup \{ \{r, g \} : \forall g \in G\}$\\
+          $G \leftarrow G \cup ( r )$ } } \Return{$G$}
+    \end{algorithm}
+  \end{frame}
+  
+\end{section}
+
+
+\begin{section}{M4GB Algorithm} %TODO
+  \begin{frame}{Observations}
+  \end{frame}
+
+  \begin{frame}{M4GB Reduction}
+  \end{frame}
+
+  \begin{frame}{M4GB (Simplified)}
+  \end{frame}
+\end{section}
+
+
+\begin{section}{Performance Comparison}
+  \begin{frame}
+    \begin{itemize}
+    \item<1-> Implemented using \texttt{C++11}
+    \item<2-> Comparison with existing implementations
+      \begin{enumerate}
+      \item FGb C Interface - Implementation by Jean Charles
+        Faugere\footnote<2->{Available at
+          \url{http://www-polsys.lip6.fr/~jcf/FGb/C/index.html}}
+      \item Magma v2.20-6
+      \item OpenF4 v1.0.1 - Open source implementation by Coladon,
+        Vitse and Joux\footnote<2->{Available at
+          \url{https://github.com/nauotit/openf4}}.
+      \end{enumerate}
+
+    \item<3-> Test cases
+      \begin{enumerate}
+      \item Dense polynomials with coefficients in $\FField{31}$
+      \item $m = 2n$ and $m = n + 1$.
+      \end{enumerate}
+      
+     
+    \end{itemize}
+    
+  \end{frame}
+
+  \begin{frame}{Benchmark for $m = 2n$}
+    \vspace{-3mm}
+    \begin{scriptsize}
+      \begin{table}
+        \begin{tabular}[h]{|c|c|c|c|c|c|}
+          \hline
+          \multicolumn{2}{|c|}{} &\multicolumn{4}{c|}{Total CPU time (sec)}\\
+          \hline
+          $n$ & $m$ & OpenF4 & FGb & Magma (projected) & M4GB \\
+          \hline
+          $20$ & $40$ & $206$     & $470$ &  $232.17$ & $57$                 \\
+          $21$ & $42$ & $472$     & $1002$ & $500.26$ & $170$             \\
+          $22$ & $44$ & $1145$   & $3118$ & $1616.73$ & $424$             \\
+          $23$ & $46$ & $2274$   & $6849$ & $3184.82$ & $1060$           \\
+          $24$ & $48$ & $10293$ & $64700$ & $31167.61$ & $2556$        \\
+          $25$ & $50$ & -             & $151653$ & $77678.58$ & $5575$       \\
+          $26$ & $52$ & -             & $360055$ & $183628.74$ & $15517$     \\
+          $27$ & $54$ & -             & $767543$ & $409451.87$ & $46548$     \\
+          \hline\hline
+          \multicolumn{2}{|c|}{} & \multicolumn{4}{c|}{Memory (MB)} \\
+          \hline
+          % $n$ & $m$ & OpenF4 & FGb & Magma (projected) & M4GB \\
+          % \hline
+          20 & 40 & $4240$     & $112$  & $361.84$ & $73$\\
+          21 & 42 & $6640$     & $165$      & $577.34$ & $121$\\
+          22 & 44 & $14368$   & $525$    & $853.84$ & $226$\\
+          23 & 46 & $26135$   & $918$    & $1324.16$ & $395$\\
+          24 & 48  & $161945$ & $1561$  & $8872.94$ & $663$\\
+          25 & 50 & -               & $2765$    & $19718.78$ & $1471$\\
+          26 & 52 & -               & $4607$   & $25197$ & $3328$\\
+          27 & 54 & -               & $8180$   & $39844.84$ & $6799$\\
+          \hline
+        
+        \end{tabular}
+      \end{table}
+    \end{scriptsize}
+  \end{frame}
+
+  
+  \begin{frame}{Graph for $m = 2n$}
+    \vspace{-10mm}
+    \begin{tikzpicture}[xscale=0.7, yscale=0.65]
+      \begin{semilogyaxis}
+		[ title={Total CPU time (sec)}, xlabel={No. of variables},
+        % ylabel={(sec)},
+        x label style={at={(axis description
+            cs:.9,0.1)},anchor=south},
+        % y label style={at={(axis description
+        % cs:0.15,.43)},anchor=north},
+        legend pos=north west, legend style={draw=none,fill=none},
+        grid style=dashed,
+        % scale=0.7 ymin=10,ymax=1000000 xmin=20,xmax=27,
+        xscale=0.78 ]
+		
+		\addplot[color=blue, mark=square]
+        coordinates{(20,206)(21,472)(22,1145)(23,2274)(24,10293)};
+		
+		\addplot[color=green,mark=square]
+        coordinates{(20,470)(21,1002)(22,3118)(23,6849)(24,64700)(25,151653)(26,360055)(27,767543)%(28,1578995)
+        };
+		
+		\addplot[color=yellow,mark=square, style=densely dashed]
+        coordinates{(20,232.16)(21,500.26)(22,1616.73)(23,3184.81)(24,31167.61)(25,77678.58)(26,183628.74)(27,409451.87)%(28,838817.93)
+        };
+		
+		\addplot[color=red,mark=square]
+        coordinates{(20,57)(21,170)(22,424)(23,1060)(24,2556)(25,5575)(26,15517)(27,46548)%(28,146204)
+        };
+        
+        \addplot +[mark=none,color=white, style=dashed] coordinates
+        {(23.5, 100) (23.5, 1000000)};
+        % \node[anchor={north west},rotate=270] at (axis cs:
+        % 23.5,1000000) { DoR 5 };
+        % \node[anchor={south west},rotate=270] at (axis cs:
+        % 23.5,1000000) { DoR 6 };
+        
+        \legend{OpenF4, FGb, Magma, M4GB}
+      \end{semilogyaxis}
+      % \draw
+    \end{tikzpicture}
+    \hspace{10mm}
+    \begin{tikzpicture}[xscale=0.7, yscale=0.65]
+      \begin{semilogyaxis}
+		[ title={Memory usage (MB)}, xlabel={No. of variables},
+        % ylabel={Memory (MB)},
+        x label style={at={(axis description
+            cs:.9,0.1)},anchor=south},
+        % y label style={at={(axis description
+        % cs:0.2,.5)},anchor=north},
+        legend pos=north west, legend style={draw=none,fill=none},
+        grid style=dashed, xscale=0.78 ]
+		
+		\addplot[color=blue, mark=square]
+        coordinates{(20,4240)(21,6640)(22,14368)(23,26135)(24,161945)};
+		
+		\addplot[color=green,mark=square]
+        coordinates{(20,112)(21,165)(22,525)(23,918)(24,1561)(25,2765)(26,4607)(27,8180)%(28,12982)
+        };
+		
+		\addplot[color=yellow,mark=square, style=densely dashed]
+        coordinates{(20,361.84)(21,577.34)(22,853.84)(23,1324.16)(24,8872.94)(25,19718.78)(26,25197)(27,39844.84)%(28,62790.47)
+        };
+		
+		\addplot[color=red,mark=square]
+        coordinates{(20,73)(21,121)(22,226)(23,395)(24,663)(25,1471)(26,3328)(27,6799)%(28,14904)
+        };
+		
+		\addplot +[mark=none,color=white, style=dashed] coordinates
+        {(23.5, 100) (23.5, 1000000)};
+        % \node[anchor={north west},rotate=270] at (axis cs:
+        % 23.5,1500000) { DoR 5 };
+        % \node[anchor={south west},rotate=270] at (axis cs:
+        % 23.5,1500000) { DoR 6 };
+		
+		\legend{OpenF4, FGb, Magma, M4GB}
+      \end{semilogyaxis}
+	\end{tikzpicture}
+  \end{frame}
+  
+  
+  \begin{frame}{Benchmark for $m = n + 1$}
+    \vspace{-6mm}
+    \begin{footnotesize}
+      \begin{table}
+        \begin{tabular}[h]{|c|c|c|c|c|c|}
+          \hline
+          \multicolumn{2}{|c|}{} & \multicolumn{4}{c|}{Total CPU time (sec)} \\
+          \hline
+          $n$ & $m$ & OpenF4 & FGb & Magma (projected) & M4GB \\
+          \hline
+          $10$ & $11$ & $2.99$     & $5$         & $3.29$ 	      & $0.98$\\
+          $11$ & $12$ & $8.73$     & $21$       & $11.172$   & $2.6$\\
+          $12$ & $13$ & $36.76$   & $134$     & $59.08$     & $13.92$   \\
+          $13$ & $14$ & $172.49$ & $642$     & $286.4$     & $58.18$   \\
+          $14$ & $15$ & $1258$    & $5850$   & $2810.75$ & $393.19$ \\
+          $15$ & $16$ & $7225$    & $36361$ & $17265.5$ & $2424$   \\
+          \hline\hline
+          \multicolumn{2}{|c|}{} & \multicolumn{4}{c|}{Memory (MB)} \\
+          \hline
+          10 & 11      & $101$       & $33$ & $32.09$ & $17$\\
+          11 & 12        & $341$       & $50$ & $64.12$ & $16$\\
+          12 & 13 & $1463$     & $112$ & $113.59$ & $31$\\
+          13 & 14 & $7622$     & $323$ & $281.53$ & $74$\\
+          14 & 15 & $33460$   & $1098$ & $1104$ & $250$\\
+          15 & 16  & $117396$ & $4118$ & $3320$ & $837$\\
+          \hline
+        \end{tabular}
+      \end{table}
+    \end{footnotesize}
+  \end{frame}
+
+  \begin{frame}{Graph for $m = n + 1$}
+    \vspace{-10mm}
+    \begin{tikzpicture}[xscale=0.7, yscale=0.65]
+      \begin{semilogyaxis}
+        [ title={Total CPU time (sec)},%, for the case $m=n+1$.},
+		xlabel={No. of variables},
+        % ylabel={CPU time (sec)},
+        x label style={at={(axis description
+            cs:.9,0.1)},anchor=south}, legend pos=north west, legend
+        style={draw=none,fill=none}, grid style=dashed, xscale = 0.78
+        ] \addplot[color=blue,mark=square] coordinates{(10, 2.99)(11,
+          8.73)(12, 36.76)(13, 172.49)(14, 1258)(15, 7225)};
+				
+		\addplot[color=green,mark=square]
+        coordinates{(10,5)(11,21)(12,134)(13,642)(14,5850)(15,36361)};
+		
+		\addplot[color=yellow,mark=square,style=densely dashed]
+        coordinates{(10,3.29)(11,11.172)(12,59.08)(13,286.4)(14,2810.75)(15,17265.5)};
+		
+		\addplot[color=red,mark=square] coordinates{(10, 0.98)(11,
+          2.6)(12, 13.92)(13,58.18)(14, 393.19)(15, 2424)};
+		
+		\addplot +[mark=none,color=white, style=dashed] coordinates
+        {(11.5, 1) (11.5, 1500)};
+        % \node[anchor={north west},rotate=270] at (axis cs:
+        % 11.5,1500) { DoR 7 };
+        % \node[anchor={south west},rotate=270] at (axis cs:
+        % 11.5,1500) { DoR 8 };
+		
+		\addplot +[mark=none,color=white, style=dashed] coordinates
+        {(13.5, 1) (13.5, 100000)};
+        % \node[anchor={north west},rotate=270] at (axis cs:
+        % 13.5,100000) { DoR 8 };
+        % \node[anchor={south west},rotate=270] at (axis cs:
+        % 13.5,100000) { DoR 9 };
+		
+		\legend{OpenF4, FGb, Magma, M4GB}
+      \end{semilogyaxis}
+    \end{tikzpicture}
+    \hspace{10mm}
+    \begin{tikzpicture}[xscale=0.7, yscale=0.65]
+      \begin{semilogyaxis}
+        [ title={Memory usage (MB)},% for the case $m=n+1$.},
+		xlabel={No. of variables}, x label style={at={(axis
+            description cs:.9,0.1)},anchor=south},
+        % ylabel={Memory (Mbytes)},
+		legend pos=north west, legend style={draw=none,fill=none},
+        grid style=dashed, xscale = 0.78 ]
+        \addplot[color=blue,mark=square]
+        coordinates{(10,101)(11,341)(12,1463)(13,7622)(14,33460)(15,117396)};
+				
+		\addplot[color=green,mark=square]
+        coordinates{(10,33)(11,50)(12,112)(13,323)(14,1098)(15,4118)};
+		
+		\addplot[color=yellow,mark=square,style=densely dashed]
+        coordinates{(10,32.09)(11,64.12)(12,113.59)(13,281.53)(14,1104)(15,3320)};
+		
+		\addplot[color=red,mark=square]
+        coordinates{(10,17)(11,16)(12,31)(13,74)(14,250)(15,837)};
+		
+		\addplot +[mark=none,color=white, style=dashed] coordinates
+        {(11.5, 10) (11.5, 5000)};
+        % \node[anchor={north west},rotate=270] at (axis cs:
+        % 11.5,7500) { DoR 7 };
+        % \node[anchor={south west},rotate=270] at (axis cs:
+        % 11.5,7500) { DoR 8 };
+		
+		\addplot +[mark=none,color=white, style=dashed] coordinates
+        {(13.5, 30) (13.5, 100000)};
+        % \node[anchor={north west},rotate=270] at (axis cs:
+        % 13.5,180000) { DoR 8 };
+        % \node[anchor={south west},rotate=270] at (axis cs:
+        % 13.5,180000) { DoR 9 };
+		
+		\legend{OpenF4, FGb, Magma, M4GB}
+      \end{semilogyaxis}
+    \end{tikzpicture}
+  \end{frame}
+\end{section} %Performance Comparison
+
+\begin{section}{Solving MQ Challenges}
+
+  \begin{frame}
+    \begin{itemize}
+    \item MQ-based public key and digital signature are candidates of
+      post-quantum cryptography.
+    \item Their security relies on the difficulty of finding a
+      solution of an MQ problem.
+    \item Need to understand its difficulty in practice
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}{Fukuoka MQ Challenge}
+    % Describe the type
+    \begin{itemize}
+    \item Started on 1st April 2015
+    \item<1-> Six different type of challenges
+    \item<2-> Type I, II, and III are encryption-type parameter
+      $(m=2n)$ and coefficients in
+      $\FField{2}, \FField{2^8}, \FField{31}$ respectively.
+    \item<3-> Type IV, V, and VI are signature-type parameter
+      $(n \approx 1.5m)$ and coefficients in
+      $\FField{2}, \FField{2^8}, \FField{31}$ respectively.
+    \item <4-> Parameter Choice : Require at least \alert{one month}
+      for Magma 2.19-9 to solve using \alert{Four 6-cores Intel(R)
+        Xeon(R) CPU E5-4617 @ 2.9GHz} and \alert{1TB of RAM}.
+    \end{itemize}
+
+    \begin{center}\onslide<5->\url{https://www.mqchallenge.org}\end{center}
+  \end{frame}
+
+  \begin{frame}{Solving Signature-type MQ Challenge}
+    \begin{itemize}
+    \item Hybrid approach : trade-off between exhaustive search and
+      computing \Grobner bases
+    \item Idea :
+      \begin{enumerate}
+      \item Select a random vector
+        $(a_1, \ldots, a_{n-m}) \in \FField{q}^{n-m}$
+      \item Construct a new system with $n=m$
+        $$
+        \tilde{F} = \{ f(x_1, \ldots, x_m, a_1, \ldots, a_{n-m}) :
+        \forall f \in F \}
+        $$
+      \item Select $k \in \{ 1, \ldots, m\}$ and construct $q^k$
+        subsystems from $\tilde{F}$ by substituting $k$ variables with
+        all elements of $\FField{q}^k$.
+      \item Each subsystem generated can be solved in parallel.
+      \end{enumerate}
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}{Computational Resources}
+
+    \begin{enumerate}[A)]
+    \item<1-> Desktop machine with Intel(R) Core(TM) i7-2600K CPU @
+      3.40GHz and 16GB RAM
+    \item<2-> NUMA machine with two nodes of Intel(R) Xeon(R) CPU
+      E5-2650 v3 @ 2.30GHz and 128GB RAM each.
+    \end{enumerate}
+  \end{frame}
+
+  \begin{frame}{Solved Challenges}
+    \begin{table}
+      \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        Type & $n/m$ & Machine Used & \# Node & Duration \\
+        \hline
+        \onslide<2->{V} & \onslide<2->{$24/16$} & \onslide<3->{A} & \onslide<3->{$1$} & \onslide<3->{$\approx 9.3$ hours}\\
+        \onslide<2->{V} & \onslide<2->{$25/17$} & \onslide<4->{B} & \onslide<4->{$1$} & \onslide<4->{$\approx 46.33$ hours}\\
+        \onslide<2->{V} & \onslide<2->{$27/18$} & \onslide<4->{B} & \onslide<4->{$2$} & \onslide<4->{$\approx 10.9$ days}\\
+        \hline
+        \hline
+        \onslide<5->{VI} & \onslide<5->{$24/16$} & \onslide<6->{A} & \onslide<6->{$1$} & \onslide<6->{$\approx 1.2$ hours}\\
+        \onslide<5->{VI} & \onslide<5->{$25/17$} & \onslide<7->{B} & \onslide<7->{$1$} & \onslide<7->{$\approx 9.87$ hours}\\
+        \onslide<5->{VI} & \onslide<5->{$27/18$} & \onslide<7->{B} & \onslide<7->{$1$} & \onslide<7->{$\approx 31.48$ hours}\\
+        \onslide<5->{VI} & \onslide<5->{$28/19$} & \onslide<7->{B} & \onslide<7->{$2$} & \onslide<7->{$\approx 7.61$ days}\\
+        \hline
+      \end{tabular}
+    \end{table}
+  \end{frame}
+
+\end{section} %Solving MQ Challenges
+
+
+\begin{frame}
+  \center{\url{https://github.com/cr-marcstevens/m4gb}}
+\end{frame}
+
+
+\begin{frame}
+  \center{Question ?}
+\end{frame}
+
+
+\end{document}
