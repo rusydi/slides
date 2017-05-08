@@ -2,6 +2,7 @@
 
 \usepackage[linesnumbered,lined, vlined]{algorithm2e}
 \usepackage{amsmath, amssymb, amsfonts}
+\usepackage{caption}
 \usepackage{color}
 \usepackage{graphicx}
 \usepackage{multirow}
@@ -17,12 +18,21 @@
 \newcommand{\LM}[1]{\mathsf{LM}(#1)}
 \newcommand{\LC}[1]{\mathsf{LC}(#1)}
 \newcommand{\Tail}[1]{\mathsf{Tail}(#1)}
+\newcommand{\Term}[1]{\mathsf{Term}(#1)}
+\newcommand{\term}{\mathfrak{t}}
+\newcommand{\mono}{\mathfrak{m}}
+\newcommand{\coef}{\mathfrak{c}}
 \newcommand{\mpolyring}[3]{#1[#2_{1}, \ldots, #2_{#3}]}
 \newcommand{\LCM}[2]{\mathsf{LCM}(#1, #2)}
 \newcommand{\LCMLM}[2]{\LCM{\LM{#1}}{\LM{#2}}}
 \newcommand{\Spoly}[2]{\mathsf{Spoly}(#1, #2)}
 \newcommand{\Grobner}{Gr\"{o}bner }
 \newcommand{\ZZ}{\mathbb{Z}}
+
+\newcommand{\Alg}[2]{\textsc{#1}(#2)}
+\newcommand{\MulFullReduce}[1]{\Alg{MulFullReduce}{#1}}
+\newcommand{\GetReductor}[1]{\Alg{GetReductor}{#1}}
+\newcommand{\SelectReductor}[1]{\Alg{SelectReductor}{#1}}
 
 \newtheorem{question}{Question}
 \newtheorem{link}{}
@@ -141,7 +151,7 @@
         $r \leftarrow \textsc{FullReduce}(\Spoly{p}{q}, G)$\\
         \If{$r \neq 0$} {
           $P \leftarrow P \cup \{ \{r, g \} : \forall g \in G\}$\\
-          $G \leftarrow G \cup ( r )$ } } \Return{$G$}
+          $G \leftarrow G \cup \{ r \}$ } } \Return{$G$}
     \end{algorithm}
   \end{frame}
   
@@ -153,6 +163,47 @@
   \end{frame}
 
   \begin{frame}{M4GB Reduction}
+    \vspace{-1.5cm}
+    \begin{columns}[T]
+      \begin{column}[T]{.50\textwidth}
+        \begin{scriptsize}
+          \center{$\MulFullReduce{G, u, f}$}\\
+          \vspace{0.3cm}
+          \begin{algorithm}[H]
+          $r \leftarrow 0$\\
+          \ForAll{$t \in \Term{f}$} {
+            $t' \leftarrow u \cdot t$\\
+            \If{$\exists g \in G : \LT{g} \mid t'$}
+            {
+              $(G, g) \leftarrow \GetReductor{G, t'}$\\
+              $r \leftarrow r - (t' / \LT{g}) \cdot \Tail{g}$
+            }
+            \Else
+            {
+              $r \leftarrow r + t'$
+            }
+          }
+          \Return{$(G, r)$}
+          \end{algorithm}
+        \end{scriptsize}
+      \end{column}
+      \begin{column}<2->[T]{.50\textwidth}
+        \begin{scriptsize}
+          \center{$\GetReductor{G, t}$}\\
+          \vspace{0.3cm}
+          \begin{algorithm}[H]
+            \If{$\exists g \in G : \LM{g} = \LM{t}$}
+            {
+              \Return{$(G, g)$}
+            }
+            $h \leftarrow \SelectReductor{G, t}$\\
+            $(G, h) \leftarrow \MulFullReduce{G, t / \LT{h}, \Tail{h}}$\\
+            $g \leftarrow t + h$\\
+            \Return{$(G \cup \{ g\}, g)$}
+          \end{algorithm}
+        \end{scriptsize}
+      \end{column}
+    \end{columns}
   \end{frame}
 
   \begin{frame}{M4GB (Simplified)}
