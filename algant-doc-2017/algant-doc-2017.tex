@@ -162,6 +162,38 @@
   \begin{frame}{Observations}
   \end{frame}
 
+  \begin{frame}{Example}
+    \begin{scriptsize}
+      $\FField{2}[x_1, x_2, x_3, x_4]$ with \emph{degrevlex} monomial ordering
+    \end{scriptsize}
+    \vspace{2mm}
+    \begin{columns}[T]
+      \begin{column}<2->[T]{.50\textwidth}
+        \begin{scriptsize}
+          $f = \textcolor<4>{red}{x_1^2 x_2^3} + x_1 x_2^3 x_4 + x_1 x_3^3 + x_1^3 x_4 + x_2 x_3^2 + x_4^2$\\
+          \onslide<5->{$f = f - g_1 = \textcolor<6,11>{red}{x_1 x_2^3 x_4} + x_1^3 x_4 + x_2 x_3^2$}
+          \onslide<12->{$f = f - g_4 = x_1^3 x_4 + x_2 x_3^2 + 1$}
+        \end{scriptsize}
+      \end{column}
+      \begin{column}<3->[T]{.50\textwidth}
+        \begin{scriptsize}
+          $G = \{ g_1, g_2, g_3 \onslide<10->{, \textcolor<10>{orange}{g_4} } \}$\\
+          \vspace{2mm}
+          $g_1 = \textcolor<4>{red}{x_1^2 x_2^3} + x_1 x_3^3 + x_4^2$\\
+          \vspace{1mm}
+          $g_2 = \textcolor<6>{orange}{x_2^3 x_4} + x_2 x_3 + x_3 + 1$\\
+          \vspace{1mm}
+          $g_3 = \textcolor<9>{red}{x_1 x_2 x_3} + x_1 x_3$\\
+          \vspace{1mm}
+          \onslide<10->{$ \textcolor<10>{orange}{g_4} = x_1g_2 - g_3 = \textcolor<11>{red}{x_1 x_2^3 x_4} + 1$\\}
+          \vspace{5mm}
+          \onslide<7->{$x_1 g_2 = x_1 x_2^3 x_4 + \textcolor<8>{orange}{\textcolor<9>{red}{x_1 x_2 x_3} + x_1 x_3 + x_1}$\\}
+        \end{scriptsize}
+      \end{column}
+    \end{columns}
+    \center{\onslide<13->{$r = x_1^3 x_4 + x_2 x_3^2 + 1$}}
+  \end{frame}
+
   \begin{frame}{M4GB Reduction}
     \vspace{-1.5cm}
     \begin{columns}[T]
@@ -208,6 +240,7 @@
 
   \begin{frame}{M4GB (Simplified)}
   \end{frame}
+
 \end{section}
 
 
