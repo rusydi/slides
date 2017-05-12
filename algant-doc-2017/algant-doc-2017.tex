@@ -193,7 +193,7 @@
     $$
     F \subseteq \mpolyring{\Field}{x}{n}
     \begin{cases}
-      \Tail{F} = \cup_{f \in F} \Tail{f}\\
+      \Tail{F} = \cup_{f \in F} \{ \Tail{f} \}\\
       \Term{F} = \cup_{f \in F} \Term{f}\\
       \Mono{F} = \cup_{f \in F} \Mono{f}
     \end{cases}
@@ -324,8 +324,8 @@
 
   \begin{frame}
     \begin{enumerate}
-    \item Maintain tail-reduced polynomials (during reduction and when a new element for the basis is found)
-      \item Identify polynomial with their leading monomial (i.e. no two polynomials in $G$ that have equal leading monomial)
+    \item Maintain tail-reduced polynomials
+    \item Identify polynomial with their leading monomial
     \end{enumerate}
   \end{frame}
 
@@ -663,38 +663,49 @@
 
 \begin{section}{Solving MQ Challenges}
 
-  \begin{frame}{Solving Type V and VI of MQ Challenge}
+  \begin{frame}{Solved MQ Challenges}
+    \begin{table}
+      \center
+      \begin{tabular}{|c|c|c|c|}
+        \cline{2-4}
+        \multicolumn{1}{c|}{} & $\FField{2}$ & $\FField{2^8}$ & $\FField{31}$\\
+        \hline
+        \multirow{2}{*}{$m = 2n$} & \Large{I} &  \Large{II} & \Large{III} \\
+        \cline{2-4}
+        & $n \geq 55$ & $n \geq 35$ & $n \geq 34$\\
+        \hline
+        \hline
+        \multirow{2}{*}{$m \approx 2/3 n$} & \Large{IV} & \color<2->{orange}{\Large{V}} & \color<2->{orange}{\Large{VI}} \\
+        \cline{2-4}
+        & $m \geq 55$ & $m \geq 16$ & $m \geq 16$\\
+        \hline
+      \end{tabular}
+    \end{table}
+  \end{frame}
+
+  \begin{frame}{Solving Strategy}
     \begin{itemize}
-    \item Hybrid approach : trade-off between exhaustive search and
-      computing \Grobner bases
-    \item Idea :
+    \item<2-> Hybrid approach
+    \item<3-> Idea :
       \begin{enumerate}
-      \item Select a random vector
+      \item<4-> Randomly select
         $(a_1, \ldots, a_{n-m}) \in \FField{q}^{n-m}$
-      \item Construct a new system with $n=m$
+      \item<5-> Construct
         $$
         \tilde{F} = \{ f(x_1, \ldots, x_m, a_1, \ldots, a_{n-m}) :
         \forall f \in F \}
         $$
-      \item Select $k \in \{ 1, \ldots, m\}$ and construct $q^k$
-        subsystems from $\tilde{F}$ by substituting $k$ variables with
-        all elements of $\FField{q}^k$.
-      \item Each subsystem generated can be solved in parallel.
+      \item<6-> Select small positive integer $k$ (e.g. $1$ or $2$)
+      \item<7-> Generate $q^k$ subsystems
+        $$
+        \{ \tilde{F}(x_1, \ldots, x_{n-k}, v_1, \ldots, v_k) : (v_1, \ldots, v_k) \in \FField{q}^k\}
+        $$
+      \item<8-> Compute \Grobner basis of each subsystem
       \end{enumerate}
     \end{itemize}
   \end{frame}
 
-  \begin{frame}{Computational Resources}
-
-    \begin{enumerate}[A)]
-    \item<1-> Desktop machine with Intel(R) Core(TM) i7-2600K CPU @
-      3.40GHz and 16GB RAM
-    \item<2-> NUMA machine with two nodes of Intel(R) Xeon(R) CPU
-      E5-2650 v3 @ 2.30GHz and 128GB RAM each.
-    \end{enumerate}
-  \end{frame}
-
-  \begin{frame}{Solved Challenges}
+  \begin{frame}{Summary of Solved Challenges}
     \begin{table}
       \begin{tabular}{|c|c|c|c|c|}
         \hline
@@ -712,6 +723,11 @@
         \hline
       \end{tabular}
     \end{table}
+    \vspace{10mm}
+    \begin{footnotesize}
+        A) Intel(R) Core(TM) i7-2600K CPU @3.40GHz and 16GB RAM (Desktop)\\
+        B) Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz and 128GB RAM (NUMA)
+    \end{footnotesize}
   \end{frame}
 
 \end{section} %Solving MQ Challenges
