@@ -1,6 +1,6 @@
 \documentclass{beamer}
 
-\usepackage[linesnumbered,lined, vlined]{algorithm2e}
+\usepackage[lined, vlined]{algorithm2e}
 \usepackage{amsmath, amssymb, amsfonts}
 \usepackage{caption}
 \usepackage{color}
@@ -31,6 +31,7 @@
 \newcommand{\ZZ}{\mathbb{Z}}
 
 \newcommand{\Alg}[2]{\textsc{#1}(#2)}
+\newcommand{\FullReduce}[1]{\Alg{FullReduce}{#1}}
 \newcommand{\MulFullReduce}[1]{\Alg{MulFullReduce}{#1}}
 \newcommand{\GetReductor}[1]{\Alg{GetReductor}{#1}}
 \newcommand{\SelectReductor}[1]{\Alg{SelectReductor}{#1}}
@@ -207,26 +208,6 @@
     % \end{block}
   \end{frame}
 
-  \begin{frame}{Polynomial Reduction}
-
-    TODO
-    % \begin{theorem}
-    %   Let $G = (g_1, \ldots, g_t)$ be a nonempty ordered finite subset
-    %   of $\mpolyring{\Field}{x}{n}$. Then every polynomial
-    %   $f \in \mpolyring{\Field}{x}{n}$ can be written as
-    %   $$
-    %   f = q_1 g_1 + \ldots + q_t g_t + r,
-    %   $$
-    %   where $q_1, \ldots, q_t, r \in \mpolyring{\Field}{x}{n}$ and
-    %   either $r = 0$ or none of terms of $r$ is divisible by any of
-    %   $\LT{g_1}, \ldots, \LT{g_t}$.
-    % \end{theorem}
-
-    % \pause
-    
-    % \center{$r \leftarrow \textsc{FullReduce}(f, G)$}
-  \end{frame}
-
   \begin{frame}{\Grobner Basis : Definition}
     \begin{definition}
       \onslide<2->{$I \neq \{ 0 \}$ be an ideal of $\mpolyring{\Field}{x}{n}$}\\
@@ -236,7 +217,7 @@
     \end{definition}
   \end{frame}
   
-  \begin{frame}{\Grobner basis and Solving System of Equations}
+  \begin{frame}{\Grobner Basis and Solving System of Equations}
     \begin{block}<2->{Lexicographic Ordering}
       \begin{align*}
       &g_1(x_1), \ldots,\\
@@ -255,7 +236,20 @@
     \end{block}
   \end{frame}
 
-  \begin{frame}{S-Polynomial}
+  \begin{frame}
+    \begin{question}<2->
+      Given $f_1, \ldots, f_m \in \mpolyring{\Field}{x}{n}$, how to compute the \Grobner basis $G$ of $\Ideal{f_1, \ldots, f_m}$ ?
+    \end{question}
+
+    \begin{block}<3->{How to obtain new element in the ideal ?}
+      \begin{enumerate}
+      \item<4-> Generate polynomials of higher degree
+      \item<5-> Division algorithm in $\mpolyring{\Field}{x}{n}$ (computing remainder)
+      \end{enumerate}
+    \end{block}
+  \end{frame}
+
+  \begin{frame}{Generate higher degree polynomial : S-Polynomial}
     \begin{itemize}
     \item<2-> $f, g \in \mpolyring{\Field}{x}{n}$ with $f \neq 0, g \neq 0$
     \item<3-> $x^{\gamma} = \LCMLM{f}{g}$
@@ -268,43 +262,123 @@
     \end{definition}
   \end{frame}
 
+  \begin{frame}{Division Algorithm in $\mpolyring{\Field}{x}{n}$ : Example}
+    \begin{table}
+      \begin{tabular}{r|ll}
+        \multicolumn{1}{c}{} & $\onslide<2->{xy} \onslide<9->{- z} \onslide<12->{+ 1}$ & \hspace{10mm} \onslide<5->{$r$}\\
+        \cline{2-2}
+        $xy + z$ & $x^2 y^2 + z^4 + xy$ \\
+        \multicolumn{1}{c}{} & \onslide<3->{$x^2y^2 + xyz$} &\\
+        \cline{2-2}
+        \multicolumn{1}{c}{} & \onslide<4->{$z^4 - xyz + xy$} & \hspace{10mm}\onslide<6->{$z^4$}\\
+        \multicolumn{1}{c}{} & \onslide<7->{$z^4$} & \\
+        \cline{2-2}
+        \multicolumn{1}{c}{} & \onslide<8->{$-xyz + xy$} & \\
+        \multicolumn{1}{c}{} & \onslide<10->{$-xyz - z^2$} & \\
+        \cline{2-2}
+        \multicolumn{1}{c}{} & \onslide<11->{$xy + z^2$} & \\
+        \multicolumn{1}{c}{} & \onslide<13->{$xy + z$} & \\
+        \cline{2-2}
+        \multicolumn{1}{c}{} & \onslide<14->{$z^2 - z$} & \hspace{10mm}\onslide<15->{$z^4 + z^2$}\\
+        \multicolumn{1}{c}{} & \onslide<16->{$z^2$} & \\
+        \cline{2-2}
+        \multicolumn{1}{c}{} & \onslide<17->{$-z$} & \hspace{10mm}\onslide<18->{$z^4 + z^2 - z$}\\
+        \multicolumn{1}{c}{} & \onslide<19->{$-z$} & \\
+        \cline{2-2}
+        \multicolumn{1}{c}{} & \onslide<20->{$0$} & \\
+      \end{tabular}
+    \end{table}
+  \end{frame}
+
+  \begin{frame}{Division Algorithm / Polynomial Reduction}
+
+    $G = (g_1, \ldots, g_t) \subseteq \mpolyring{\Field}{x}{n}$
+
+    \begin{theorem}<2->[Division Algorithm]
+      Every $f \in \mpolyring{\Field}{x}{n}$ can be written as
+      $$
+      f = q_1 g_1 + \ldots + q_t g_t + r
+      $$
+      and
+      $$
+      r =
+      \begin{cases}
+        0 \\
+        \text{none of terms of $r$ is divisible by any of $\LT{g_i}$}
+        \end{cases}
+      $$
+    \end{theorem}
+
+    \onslide<3->{\center{$r \leftarrow \textsc{FullReduce}(f, G)$}}
+  \end{frame}
+
+
   \begin{frame}{Buchberger's Algorithm}
     \begin{algorithm}[H]
       \KwIn{A finite ordered subset
         $F \subseteq \mpolyring{\Field}{x}{n}$} \KwResult{A \Grobner
         basis $G$ such that $\Ideal{G} = \Ideal{F}$}
-      
-      $P \leftarrow \{ \{p, q \} : \forall p, q \in F\ \mathbf{and}\ p \neq q \}$\\
-      $G \leftarrow F$\\
 
-      \While{$P \neq \{ \}$} {
-        $\{ p, q \} \leftarrow \textsc{Select}(P)$\\
-        $P \leftarrow P \setminus \{ \{ p, q \} \}$\\
-        $r \leftarrow \textsc{FullReduce}(\Spoly{p}{q}, G)$\\
-        \If{$r \neq 0$} {
-          $P \leftarrow P \cup \{ \{r, g \} : \forall g \in G\}$\\
-          $G \leftarrow G \cup \{ r \}$ } } \Return{$G$}
+      $G \leftarrow F$\\
+      \Repeat{$G = G'$}
+      {
+        $G' \leftarrow G$\\
+        \ForAll{ $(p, q) \in G' \times G'$, $p \neq q$}
+        {
+          $r \leftarrow \FullReduce{\Spoly{p}{q}, G'}$\\
+          \If{$r \neq 0$}
+          {
+            $G \leftarrow G \cup \{ r \}$
+          }
+        }
+      }
+      \Return{$G$}
     \end{algorithm}
+
+    % \begin{algorithm}[H]
+    %   \KwIn{A finite ordered subset
+    %     $F \subseteq \mpolyring{\Field}{x}{n}$} \KwResult{A \Grobner
+    %     basis $G$ such that $\Ideal{G} = \Ideal{F}$}
+
+    %   $P \leftarrow \{ \{p, q \} : \forall p, q \in F\ \mathbf{and}\ p \neq q \}$\\
+    %   $G \leftarrow F$\\
+
+    %   \While{$P \neq \{ \}$} {
+    %     $\{ p, q \} \leftarrow \textsc{Select}(P)$\\
+    %     $P \leftarrow P \setminus \{ \{ p, q \} \}$\\
+    %     $r \leftarrow \textsc{FullReduce}(\Spoly{p}{q}, G)$\\
+    %     \If{$r \neq 0$} {
+    %       $P \leftarrow P \cup \{ \{r, g \} : \forall g \in G\}$\\
+    %       $G \leftarrow G \cup \{ r \}$ } } \Return{$G$}
+    % \end{algorithm}
   \end{frame}
 \end{section}
 
 
 \begin{section}{M4GB Algorithm}
-  \begin{frame}{Example}
-    \begin{scriptsize}
-      $\FField{2}[x_1, x_2, x_3, x_4]$ with \emph{degrevlex} monomial ordering
-    \end{scriptsize}
+  \begin{frame}
+    \begin{itemize}
+    \item<1-> \Grobner bases algorithms follows the same principle
+    \item<2-> Differs in reduction techniques
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}{Example : Standard Reduction vs M4GB Reduction}
+    \begin{normalsize}
+      $\FField{2}[x_1, x_2, x_3, x_4]$ with \emph{degrevlex} ordering
+    \end{normalsize}
     \vspace{2mm}
     \begin{columns}[T]
       \begin{column}<2->[T]{.50\textwidth}
-        \begin{scriptsize}
+        \begin{small}
           $f = \textcolor<4>{red}{x_1^2 x_2^3} + x_1 x_2^3 x_4 + x_1 x_3^3 + x_1^3 x_4 + x_2 x_3^2 + x_4^2$\\
           \onslide<5->{$f = f - g_1 = \textcolor<6,11>{red}{x_1 x_2^3 x_4} + x_1^3 x_4 + x_2 x_3^2$}
           \onslide<12->{$f = f - g_4 = x_1^3 x_4 + x_2 x_3^2 + 1$}
-        \end{scriptsize}
+        \end{small}
       \end{column}
+      \vrule{}
       \begin{column}<3->[T]{.50\textwidth}
-        \begin{scriptsize}
+        \begin{small}
           $G = \{ g_1, g_2, g_3 \onslide<10->{, \textcolor<10>{orange}{g_4} } \}$\\
           \vspace{2mm}
           $g_1 = \textcolor<4>{red}{x_1^2 x_2^3} + x_1 x_3^3 + x_4^2$\\
@@ -316,17 +390,16 @@
           \onslide<10->{$ \textcolor<10>{orange}{g_4} = x_1g_2 - g_3 = \textcolor<11>{red}{x_1 x_2^3 x_4} + 1$\\}
           \vspace{5mm}
           \onslide<7->{$x_1 g_2 = x_1 x_2^3 x_4 + \textcolor<8>{orange}{\textcolor<9>{red}{x_1 x_2 x_3} + x_1 x_3 + x_1}$\\}
-        \end{scriptsize}
+        \end{small}
       \end{column}
     \end{columns}
     \center{\onslide<13->{$r = x_1^3 x_4 + x_2 x_3^2 + 1$}}
   \end{frame}
 
   \begin{frame}
-    \begin{enumerate}
-    \item Maintain tail-reduced polynomials
-    \item Identify polynomial with their leading monomial
-    \end{enumerate}
+    \begin{block}{M4GB Main Strategy}
+      Maintain tail-reduced polynomials
+    \end{block}
   \end{frame}
 
   \begin{frame}{M4GB Reduction}
