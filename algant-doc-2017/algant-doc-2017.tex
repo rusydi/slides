@@ -132,56 +132,135 @@
     \onslide<7->{\center{\url{https://www.mqchallenge.org}}}
   \end{frame}
 
-  \begin{frame}{Notations}
-    \begin{example}<1->
-      $f = \alert<4> {\alert<3>{-15} \alert<2>{x^2}} + \alert<5>{8xy -
-        13z^2 - 4x + 11z} \in \FField{31}[x, y, z]$
-
-      \begin{itemize}
-      \item<2-> $\LM{f} = \alert<2>{x^2}$ (the leading monomial of
-        $f$)
-      \item<3-> $\LC{f} = \alert<3>{-15}$ (the leading coefficient of
-        $f$)
-      \item<4-> $\LT{f} = \alert<4>{-15x^2}$ (the leading term of $f$)
-      \item<5-> $\Tail{f} = \alert<5>{8xy - 13z^2 - 4x + 11z}$ (the
-        tail of $f$)
-      \end{itemize}
-    \end{example}
+  \begin{frame}{Solving MQ-problem}
+    \begin{itemize}
+    \item<1-> Linearization
+    \item<2-> Extended Linearization (XL)
+    \end{itemize}
+    \begin{block}<3->{This talk}
+      \center{\LARGE{\Grobner basis}}
+    \end{block}
   \end{frame}
-  
+\end{section}
+
+\begin{section}{\Grobner Basis}
+  % Monomial Ordering
+  \begin{frame}{Ordering Monomial in $\mpolyring{\Field}{x}{n}$}
+    \begin{definition}[Monomial Ordering]
+      $>$ is a monomial ordering if
+      \begin{enumerate}
+      \item<2-> Total (or linear) ordering on $\ZZ_{\geq 0}^{n}$
+      \item<3-> Let $\alpha, \beta, \gamma \in \ZZ_{\geq 0}^n$ and $x = (x_1, \ldots, x_n)$
+        $$
+        x^{\alpha} > x^{\beta} \Rightarrow x^{\gamma} x^{\alpha} > x^{\gamma} x^{\beta}
+        $$
+        \item<4-> $>$ is a well-ordering on $\ZZ_{\geq 0}^n$
+      \end{enumerate}
+    \end{definition}
+  \end{frame}
+
+  \begin{frame}{Monomial Ordering : Examples}
+    \begin{block}<1->{Lexicographic}
+      \begin{center}
+        $x^{\alpha} >_{\mathrm{lex}} x^{\beta} \Leftrightarrow$ the leftmost nonzero entry of $\alpha - \beta$ is positive
+      \end{center}
+    \end{block}
+
+    \begin{block}<2->{Degree-Reverse Lexicographic (degrevlex)}
+      $x^{\alpha} >_{\mathrm{degrevlex}} x^{\beta} \Leftrightarrow$
+      \begin{itemize}
+      \item<3-> $\sum_{i} \alpha_i > \sum_{i} \beta_i$ \quad OR
+      \item<4-> $\sum_{i} \alpha_i = \sum_{i} \beta_i$ and the rightmost nonzero entry of $\alpha - \beta$ is negative
+      \end{itemize}
+    \end{block}
+  \end{frame}
+
+  \begin{frame}{Notations}
+    $\mpolyring{\Field}{x}{n}$ together with $>$
+
+    \begin{block}<2->{Notations}
+      $f \in \mpolyring{\Field}{x}{n}$, $f \neq 0$
+      \begin{itemize}
+      \item<3-> $\LM{f}$ (the largest monomial of $f$ w.r.t $>$)
+      \item<4-> $\LC{f}$ (the coefficient correspond to $\LM{f}$)
+      \item<5-> $\LT{f} = \LC{f} \cdot \LM{f}$
+      \item<6-> $\Tail{f} = f - \LT{f}$
+      \item<7-> $\Term{f}$, $\Mono{f}$
+      \end{itemize}
+    \end{block}
+    \onslide<8->
+    {
+    $$
+    F \subseteq \mpolyring{\Field}{x}{n}
+    \begin{cases}
+      \Tail{F} = \cup_{f \in F} \Tail{f}\\
+      \Term{F} = \cup_{f \in F} \Term{f}\\
+      \Mono{F} = \cup_{f \in F} \Mono{f}
+    \end{cases}
+    $$
+    }
+    % \begin{block}{Example}
+    %   $f = \alert<4> {\alert<3>{-15} \alert<2>{x^2}} + \alert<5>{8xy -
+    %     13z^2 - 4x + 11z} \in \FField{31}[x, y, z]$
+
+    %   $\LM{f} = x^2$, $\LC{f} = -15$, $\LT{f} = -15x^2$
+    % \end{block}
+  \end{frame}
+
   \begin{frame}{Polynomial Reduction}
 
-    \begin{theorem}
-      Let $G = (g_1, \ldots, g_t)$ be a nonempty ordered finite subset
-      of $\mpolyring{\Field}{x}{n}$. Then every polynomial
-      $f \in \mpolyring{\Field}{x}{n}$ can be written as
-      $$
-      f = q_1 g_1 + \ldots + q_t g_t + r,
-      $$
-      where $q_1, \ldots, q_t, r \in \mpolyring{\Field}{x}{n}$ and
-      either $r = 0$ or none of terms of $r$ is divisible by any of
-      $\LT{g_1}, \ldots, \LT{g_t}$.
-    \end{theorem}
+    TODO
+    % \begin{theorem}
+    %   Let $G = (g_1, \ldots, g_t)$ be a nonempty ordered finite subset
+    %   of $\mpolyring{\Field}{x}{n}$. Then every polynomial
+    %   $f \in \mpolyring{\Field}{x}{n}$ can be written as
+    %   $$
+    %   f = q_1 g_1 + \ldots + q_t g_t + r,
+    %   $$
+    %   where $q_1, \ldots, q_t, r \in \mpolyring{\Field}{x}{n}$ and
+    %   either $r = 0$ or none of terms of $r$ is divisible by any of
+    %   $\LT{g_1}, \ldots, \LT{g_t}$.
+    % \end{theorem}
 
-    \pause
+    % \pause
     
-    \center{$r \leftarrow \textsc{FullReduce}(f, G)$}
+    % \center{$r \leftarrow \textsc{FullReduce}(f, G)$}
   \end{frame}
 
-  \begin{frame}{\Grobner basis}
+  \begin{frame}{\Grobner Basis : Definition}
     \begin{definition}
-      Let $I \neq \{ 0 \}$ be an ideal of
-      $\mpolyring{\Field}{x}{n}$. A finite subset $G \subseteq I$ that
-      generates $I$ is a \Grobner basis of $I$ if for all $f \in I$,
-      there exists $g \in G$ such that $\LT{g} \mid \LT{f}$.
+      \onslide<2->{$I \neq \{ 0 \}$ be an ideal of $\mpolyring{\Field}{x}{n}$}\\
+      \onslide<3->{$G \subseteq I$, $|G| < \infty$ that generates $I$ is a \Grobner basis of $I$ if,}
+
+      \onslide<4->{\center{for any $f \in I$, $\exists g \in G$ s.t. $\LT{g} \mid \LT{f}$}}
     \end{definition}
   \end{frame}
   
-  \begin{frame}{S-polynomial}
-    \begin{definition}
-      Let $f, g \in \mpolyring{\Field}{x}{n}$ be nonzero polynomials
-      and let $x^{\gamma} = \LCMLM{f}{g}$. The S-polynomial of $f$ and
-      $g$ is defined as
+  \begin{frame}{\Grobner basis and Solving System of Equations}
+    \begin{block}<2->{Lexicographic Ordering}
+      \begin{align*}
+      &g_1(x_1), \ldots,\\
+      &g_2(x_1, x_2), \ldots, g_{k_1}(x_1, x_2)\\
+      &g_{k_1 + 1}(x_1, x_2, x_3), \ldots,\\
+      &g_{k_n}(x_1, \ldots, x_n)
+      \end{align*}
+    \end{block}
+
+    \begin{block}<3->{Unique Solution in the Base Field}
+      \begin{align*}
+        g_1 = x_1 &+ c_1,\\
+            &\vdots\\
+        g_n = x_n &+ c_n
+      \end{align*}
+    \end{block}
+  \end{frame}
+
+  \begin{frame}{S-Polynomial}
+    \begin{itemize}
+    \item<2-> $f, g \in \mpolyring{\Field}{x}{n}$ with $f \neq 0, g \neq 0$
+    \item<3-> $x^{\gamma} = \LCMLM{f}{g}$
+    \end{itemize}
+    \begin{definition}<4->
       $$
       \Spoly{f}{g} = \dfrac{x^{\gamma}}{\LT{f}} \cdot f -
       \dfrac{x^{\gamma}}{\LT{g}} \cdot g.
@@ -207,11 +286,10 @@
           $G \leftarrow G \cup \{ r \}$ } } \Return{$G$}
     \end{algorithm}
   \end{frame}
-  
 \end{section}
 
 
-\begin{section}{M4GB Algorithm} %TODO
+\begin{section}{M4GB Algorithm}
   \begin{frame}{Example}
     \begin{scriptsize}
       $\FField{2}[x_1, x_2, x_3, x_4]$ with \emph{degrevlex} monomial ordering
@@ -411,7 +489,7 @@
         coordinates{(20,470)(21,1002)(22,3118)(23,6849)(24,64700)(25,151653)(26,360055)(27,767543)%(28,1578995)
         };
 		
-		\addplot[color=yellow,mark=square, style=densely dashed]
+		\addplot[color=black,mark=square]
         coordinates{(20,232.16)(21,500.26)(22,1616.73)(23,3184.81)(24,31167.61)(25,77678.58)(26,183628.74)(27,409451.87)%(28,838817.93)
         };
 		
@@ -419,7 +497,7 @@
         coordinates{(20,57)(21,170)(22,424)(23,1060)(24,2556)(25,5575)(26,15517)(27,46548)%(28,146204)
         };
         
-        \addplot +[mark=none,color=white, style=dashed] coordinates
+        \addplot +[mark=none,color=black, style=dashed] coordinates
         {(23.5, 100) (23.5, 1000000)};
         % \node[anchor={north west},rotate=270] at (axis cs:
         % 23.5,1000000) { DoR 5 };
@@ -449,7 +527,7 @@
         coordinates{(20,112)(21,165)(22,525)(23,918)(24,1561)(25,2765)(26,4607)(27,8180)%(28,12982)
         };
 		
-		\addplot[color=yellow,mark=square, style=densely dashed]
+		\addplot[color=black,mark=square]
         coordinates{(20,361.84)(21,577.34)(22,853.84)(23,1324.16)(24,8872.94)(25,19718.78)(26,25197)(27,39844.84)%(28,62790.47)
         };
 		
@@ -457,7 +535,7 @@
         coordinates{(20,73)(21,121)(22,226)(23,395)(24,663)(25,1471)(26,3328)(27,6799)%(28,14904)
         };
 		
-		\addplot +[mark=none,color=white, style=dashed] coordinates
+		\addplot +[mark=none,color=black, style=dashed] coordinates
         {(23.5, 100) (23.5, 1000000)};
         % \node[anchor={north west},rotate=270] at (axis cs:
         % 23.5,1500000) { DoR 5 };
@@ -519,20 +597,20 @@
 		\addplot[color=green,mark=square]
         coordinates{(10,5)(11,21)(12,134)(13,642)(14,5850)(15,36361)};
 		
-		\addplot[color=yellow,mark=square,style=densely dashed]
+		\addplot[color=black,mark=square]
         coordinates{(10,3.29)(11,11.172)(12,59.08)(13,286.4)(14,2810.75)(15,17265.5)};
 		
 		\addplot[color=red,mark=square] coordinates{(10, 0.98)(11,
           2.6)(12, 13.92)(13,58.18)(14, 393.19)(15, 2424)};
 		
-		\addplot +[mark=none,color=white, style=dashed] coordinates
+		\addplot +[mark=none,color=black, style=dashed] coordinates
         {(11.5, 1) (11.5, 1500)};
         % \node[anchor={north west},rotate=270] at (axis cs:
         % 11.5,1500) { DoR 7 };
         % \node[anchor={south west},rotate=270] at (axis cs:
         % 11.5,1500) { DoR 8 };
 		
-		\addplot +[mark=none,color=white, style=dashed] coordinates
+		\addplot +[mark=none,color=black, style=dashed] coordinates
         {(13.5, 1) (13.5, 100000)};
         % \node[anchor={north west},rotate=270] at (axis cs:
         % 13.5,100000) { DoR 8 };
@@ -557,20 +635,20 @@
 		\addplot[color=green,mark=square]
         coordinates{(10,33)(11,50)(12,112)(13,323)(14,1098)(15,4118)};
 		
-		\addplot[color=yellow,mark=square,style=densely dashed]
+		\addplot[color=black,mark=square]
         coordinates{(10,32.09)(11,64.12)(12,113.59)(13,281.53)(14,1104)(15,3320)};
 		
 		\addplot[color=red,mark=square]
         coordinates{(10,17)(11,16)(12,31)(13,74)(14,250)(15,837)};
 		
-		\addplot +[mark=none,color=white, style=dashed] coordinates
+		\addplot +[mark=none,color=black, style=dashed] coordinates
         {(11.5, 10) (11.5, 5000)};
         % \node[anchor={north west},rotate=270] at (axis cs:
         % 11.5,7500) { DoR 7 };
         % \node[anchor={south west},rotate=270] at (axis cs:
         % 11.5,7500) { DoR 8 };
 		
-		\addplot +[mark=none,color=white, style=dashed] coordinates
+		\addplot +[mark=none,color=black, style=dashed] coordinates
         {(13.5, 30) (13.5, 100000)};
         % \node[anchor={north west},rotate=270] at (axis cs:
         % 13.5,180000) { DoR 8 };
