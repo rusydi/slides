@@ -67,18 +67,69 @@
 \begin{section}{Introduction}
   
   \begin{frame}{Problem}
-    $\mpolyring{\Field}{x}{n}$ - a polynomial ring over a field
-    $\Field$ together with an admissible monomial ordering $<$.
+
+    \begin{itemize}
+    \item $\Field$ - A Field
+    \item $n$ - number of variables
+    \item $m$ - number of equations
+    \end{itemize}
 
     \pause
     
-    \begin{problem}[MQ-problem]
-      Let $n, m \in \ZZ_{>0}$. Given
-      $f_1, \ldots, f_m \in \mpolyring{\Field}{x}{n}$ with $f_i$ be
-      quadratic polynomials, find a $(a_1, \ldots, a_n) \in \Field^n$
-      such that $f_i(a_1, \ldots, a_n) = 0$ for all
-      $i = 1, \ldots, m$.
+    \begin{problem}<2->[Multivariate Quadratic(MQ) problem]
+
+      \begin{itemize}
+      \item<3-> Given : $f_1, \ldots, f_m \in \mpolyring{\Field}{x}{n}$, $\deg(f_i) = 2$
+      \item<4-> Problem : Find a $(v_1, \ldots, v_n) \in \Field^n$ such that
+        \begin{align*}
+        f_1(v_1, \ldots, v_n) &= 0\\
+        &\vdots\\
+          f_m(v_1, \ldots, v_n) &= 0
+        \end{align*}
+      \end{itemize}
     \end{problem}
+  \end{frame}
+
+  \begin{frame}{Why MQ Problem ?}
+    \begin{itemize}
+    \item<1-> MQ-problem is NP-complete
+    \item<2-> Candidate for post-quantum public-key and digital-signature scheme
+    \item<3-> Need to understand its practical difficulty (How ?)
+    \end{itemize}
+
+    \begin{block}<4->{Open Public Challenge - MQChallenge}
+      \begin{itemize}
+      \item Initiated at 2015
+      \item Random and dense system
+      \item Various parameters
+      \end{itemize}
+    \end{block}
+  \end{frame}
+
+  \begin{frame}{MQ Challenge Types}
+    \begin{table}
+      \center
+      \begin{tabular}{|c|c|c|c|}
+        \cline{2-4}
+        \multicolumn{1}{c|}{} & $\FField{2}$ & $\FField{2^8}$ & $\FField{31}$\\
+        \hline
+        \multirow{2}{*}{$m = 2n$} & \onslide<2->{\Large{I}} &  \onslide<2->{\Large{II}} & \onslide<2->{\Large{III}} \\
+        \cline{2-4}
+        & \onslide<3->{$n \geq 55$} & \onslide<3->{$n \geq 35$} & \onslide<3->{$n \geq 34$}\\
+        \hline
+        \hline
+        \multirow{2}{*}{$m \approx 2/3 n$} & \onslide<4->{\Large{IV}} & \onslide<4->{\Large{V}} & \onslide<4->{\Large{VI}} \\
+        \cline{2-4}
+        & \onslide<5->{$m \geq 55$} & \onslide<5->{$m \geq 16$} & \onslide<5->{$m \geq 16$}\\
+        \hline
+      \end{tabular}
+    \end{table}
+    \begin{block}<6->{Parameter Choice}
+      Require at least \alert{one month}
+      for Magma 2.19-9 to solve using \alert{Four 6-cores Intel(R)
+      Xeon(R) CPU E5-4617 @ 2.9GHz} and \alert{1TB of RAM}.
+    \end{block}
+    \onslide<7->{\center{\url{https://www.mqchallenge.org}}}
   \end{frame}
 
   \begin{frame}{Notations}
@@ -534,36 +585,7 @@
 
 \begin{section}{Solving MQ Challenges}
 
-  \begin{frame}
-    \begin{itemize}
-    \item MQ-based public key and digital signature are candidates of
-      post-quantum cryptography.
-    \item Their security relies on the difficulty of finding a
-      solution of an MQ problem.
-    \item Need to understand its difficulty in practice
-    \end{itemize}
-  \end{frame}
-
-  \begin{frame}{Fukuoka MQ Challenge}
-    % Describe the type
-    \begin{itemize}
-    \item Started on 1st April 2015
-    \item<1-> Six different type of challenges
-    \item<2-> Type I, II, and III are encryption-type parameter
-      $(m=2n)$ and coefficients in
-      $\FField{2}, \FField{2^8}, \FField{31}$ respectively.
-    \item<3-> Type IV, V, and VI are signature-type parameter
-      $(n \approx 1.5m)$ and coefficients in
-      $\FField{2}, \FField{2^8}, \FField{31}$ respectively.
-    \item <4-> Parameter Choice : Require at least \alert{one month}
-      for Magma 2.19-9 to solve using \alert{Four 6-cores Intel(R)
-        Xeon(R) CPU E5-4617 @ 2.9GHz} and \alert{1TB of RAM}.
-    \end{itemize}
-
-    \begin{center}\onslide<5->\url{https://www.mqchallenge.org}\end{center}
-  \end{frame}
-
-  \begin{frame}{Solving Signature-type MQ Challenge}
+  \begin{frame}{Solving Type V and VI of MQ Challenge}
     \begin{itemize}
     \item Hybrid approach : trade-off between exhaustive search and
       computing \Grobner bases
