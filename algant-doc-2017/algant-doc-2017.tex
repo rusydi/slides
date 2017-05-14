@@ -94,7 +94,7 @@
   \begin{frame}{Why MQ Problem ?}
     \begin{itemize}
     \item<1-> MQ-problem is NP-complete
-    \item<2-> Candidate for post-quantum public-key and digital-signature scheme
+    \item<2-> Post-quantum public-key encryption and signature scheme
     \item<3-> Need to understand its practical difficulty (How ?)
     \end{itemize}
 
@@ -112,25 +112,28 @@
       \center
       \begin{tabular}{|c|c|c|c|}
         \cline{2-4}
-        \multicolumn{1}{c|}{} & $\FField{2}$ & $\FField{2^8}$ & $\FField{31}$\\
+        \multicolumn{1}{c|}{} & \onslide<2->{$\FField{2}$} & \onslide<2->{$\FField{2^8}$} & \onslide<2->{$\FField{31}$}\\
         \hline
-        \multirow{2}{*}{$m = 2n$} & \onslide<2->{\Large{I}} &  \onslide<2->{\Large{II}} & \onslide<2->{\Large{III}} \\
+        \multirow{2}{*}{\onslide<3->{$m = 2n$}} & \onslide<1->{\Large{I}} &  \onslide<1->{\Large{II}} & \onslide<1->{\Large{III}} \\
         \cline{2-4}
-        & \onslide<3->{$n \geq 55$} & \onslide<3->{$n \geq 35$} & \onslide<3->{$n \geq 34$}\\
+        & \onslide<5->{$n \geq 55$} & \onslide<5->{$n \geq 35$} & \onslide<5->{$n \geq 34$}\\
         \hline
         \hline
-        \multirow{2}{*}{$m \approx 2/3 n$} & \onslide<4->{\Large{IV}} & \onslide<4->{\Large{V}} & \onslide<4->{\Large{VI}} \\
+        \multirow{2}{*}{\onslide<4->{$m \approx 2/3 n$}} & \onslide<1->{\Large{IV}} & \onslide<1->{\Large{V}} & \onslide<1->{\Large{VI}} \\
         \cline{2-4}
-        & \onslide<5->{$m \geq 55$} & \onslide<5->{$m \geq 16$} & \onslide<5->{$m \geq 16$}\\
+        & \onslide<6->{$m \geq 55$} & \onslide<6->{$m \geq 16$} & \onslide<6->{$m \geq 16$}\\
         \hline
       \end{tabular}
     \end{table}
-    \begin{block}<6->{Parameter Choice}
-      Require at least \alert{one month}
-      for Magma 2.19-9 to solve using \alert{Four 6-cores Intel(R)
-      Xeon(R) CPU E5-4617 @ 2.9GHz} and \alert{1TB of RAM}.
+    \begin{block}<7->{Parameter Choice}
+      \begin{itemize}
+      \item<8-> Using Magma 2.19-9
+      \item<9-> Time to solve : at least one month
+      \item<10-> CPU Used : \alert{Four 6-cores Intel(R)          
+      Xeon(R) CPU E5-4617 @ 2.9GHz} and \alert{1TB of RAM}
+      \end{itemize}      
     \end{block}
-    \onslide<7->{\center{\url{https://www.mqchallenge.org}}}
+    \onslide<11->{\center{\url{https://www.mqchallenge.org}}}
   \end{frame}
 
   \begin{frame}{Solving MQ-problem}
@@ -183,7 +186,7 @@
       $f \in \mpolyring{\Field}{x}{n}$, $f \neq 0$
       \begin{itemize}
       \item<3-> $\LM{f}$ (the largest monomial of $f$ w.r.t $>$)
-      \item<4-> $\LC{f}$ (the coefficient correspond to $\LM{f}$)
+      \item<4-> $\LC{f}$ (the coefficient corresponding to $\LM{f}$)
       \item<5-> $\LT{f} = \LC{f} \cdot \LM{f}$
       \item<6-> $\Tail{f} = f - \LT{f}$
       \item<7-> $\Term{f}$, $\Mono{f}$
@@ -211,9 +214,9 @@
   \begin{frame}{\Grobner Basis : Definition}
     \begin{definition}
       \onslide<2->{$I \neq \{ 0 \}$ be an ideal of $\mpolyring{\Field}{x}{n}$}\\
-      \onslide<3->{$G \subseteq I$, $|G| < \infty$ that generates $I$ is a \Grobner basis of $I$ if,}
+      \onslide<3->{$G \subseteq I$, $|G| < \infty$, $\Ideal{G} = I$ is a \Grobner basis of $I$ if,}
 
-      \onslide<4->{\center{for any $f \in I$, $\exists g \in G$ s.t. $\LT{g} \mid \LT{f}$}}
+      \onslide<4->{\center{$\forall f \in I$, $\exists g \in G$ s.t. $\LT{g} \mid \LT{f}$}}
     \end{definition}
   \end{frame}
   
@@ -243,13 +246,13 @@
 
     \begin{block}<3->{How to obtain new element in the ideal ?}
       \begin{enumerate}
-      \item<4-> Generate polynomials of higher degree
-      \item<5-> Division algorithm in $\mpolyring{\Field}{x}{n}$ (computing remainder)
+      \item<4-> Combine two polynomials such that the leading term cancel out
+      \item<5-> Division algorithm in $\mpolyring{\Field}{x}{n}$
       \end{enumerate}
     \end{block}
   \end{frame}
 
-  \begin{frame}{Generate higher degree polynomial : S-Polynomial}
+  \begin{frame}{Combining two polynomials : S-Polynomial}
     \begin{itemize}
     \item<2-> $f, g \in \mpolyring{\Field}{x}{n}$ with $f \neq 0, g \neq 0$
     \item<3-> $x^{\gamma} = \LCMLM{f}{g}$
@@ -262,33 +265,33 @@
     \end{definition}
   \end{frame}
 
-  \begin{frame}{Division Algorithm in $\mpolyring{\Field}{x}{n}$ : Example}
-    \begin{table}
-      \begin{tabular}{r|ll}
-        \multicolumn{1}{c}{} & $\onslide<2->{xy} \onslide<9->{- z} \onslide<12->{+ 1}$ & \hspace{10mm} \onslide<5->{$r$}\\
-        \cline{2-2}
-        $xy + z$ & $x^2 y^2 + z^4 + xy$ \\
-        \multicolumn{1}{c}{} & \onslide<3->{$x^2y^2 + xyz$} &\\
-        \cline{2-2}
-        \multicolumn{1}{c}{} & \onslide<4->{$z^4 - xyz + xy$} & \hspace{10mm}\onslide<6->{$z^4$}\\
-        \multicolumn{1}{c}{} & \onslide<7->{$z^4$} & \\
-        \cline{2-2}
-        \multicolumn{1}{c}{} & \onslide<8->{$-xyz + xy$} & \\
-        \multicolumn{1}{c}{} & \onslide<10->{$-xyz - z^2$} & \\
-        \cline{2-2}
-        \multicolumn{1}{c}{} & \onslide<11->{$xy + z^2$} & \\
-        \multicolumn{1}{c}{} & \onslide<13->{$xy + z$} & \\
-        \cline{2-2}
-        \multicolumn{1}{c}{} & \onslide<14->{$z^2 - z$} & \hspace{10mm}\onslide<15->{$z^4 + z^2$}\\
-        \multicolumn{1}{c}{} & \onslide<16->{$z^2$} & \\
-        \cline{2-2}
-        \multicolumn{1}{c}{} & \onslide<17->{$-z$} & \hspace{10mm}\onslide<18->{$z^4 + z^2 - z$}\\
-        \multicolumn{1}{c}{} & \onslide<19->{$-z$} & \\
-        \cline{2-2}
-        \multicolumn{1}{c}{} & \onslide<20->{$0$} & \\
-      \end{tabular}
-    \end{table}
-  \end{frame}
+  % \begin{frame}{Division Algorithm in $\mpolyring{\Field}{x}{n}$ : Example}
+  %   \begin{table}
+  %     \begin{tabular}{r|ll}
+  %       \multicolumn{1}{c}{} & $\onslide<2->{xy} \onslide<9->{- z} \onslide<12->{+ 1}$ & \hspace{10mm} \onslide<5->{$r$}\\
+  %       \cline{2-2}
+  %       $xy + z$ & $x^2 y^2 + z^4 + xy$ \\
+  %       \multicolumn{1}{c}{} & \onslide<3->{$x^2y^2 + xyz$} &\\
+  %       \cline{2-2}
+  %       \multicolumn{1}{c}{} & \onslide<4->{$z^4 - xyz + xy$} & \hspace{10mm}\onslide<6->{$z^4$}\\
+  %       \multicolumn{1}{c}{} & \onslide<7->{$z^4$} & \\
+  %       \cline{2-2}
+  %       \multicolumn{1}{c}{} & \onslide<8->{$-xyz + xy$} & \\
+  %       \multicolumn{1}{c}{} & \onslide<10->{$-xyz - z^2$} & \\
+  %       \cline{2-2}
+  %       \multicolumn{1}{c}{} & \onslide<11->{$xy + z^2$} & \\
+  %       \multicolumn{1}{c}{} & \onslide<13->{$xy + z$} & \\
+  %       \cline{2-2}
+  %       \multicolumn{1}{c}{} & \onslide<14->{$z^2 - z$} & \hspace{10mm}\onslide<15->{$z^4 + z^2$}\\
+  %       \multicolumn{1}{c}{} & \onslide<16->{$z^2$} & \\
+  %       \cline{2-2}
+  %       \multicolumn{1}{c}{} & \onslide<17->{$-z$} & \hspace{10mm}\onslide<18->{$z^4 + z^2 - z$}\\
+  %       \multicolumn{1}{c}{} & \onslide<19->{$-z$} & \\
+  %       \cline{2-2}
+  %       \multicolumn{1}{c}{} & \onslide<20->{$0$} & \\
+  %     \end{tabular}
+  %   \end{table}
+  % \end{frame}
 
   \begin{frame}{Division Algorithm / Polynomial Reduction}
 
